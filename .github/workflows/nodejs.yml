@@ -1,0 +1,33 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm ci
+    - run: npm run lint
+    - run: npm test
+    - name: Deploy to Heroku
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git push heroku main
+      env:
+        HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
+        HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
